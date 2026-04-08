@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SweetDrop — Botiga Online</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --purple:#7c3aed;--purple-l:#ede9fe;--purple-d:#4c1d95;
+    --arctic:#0284c7;--dusk:#7c3aed;--bloom:#db2777;--sol:#d97706;
+    --bg:#f8f7f4;--white:#ffffff;--dark:#1e1147;--gray:#6b7280;
+    --border:#e5e0d8;
+  }
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--dark)}
+
+  /* ── NAV ── */
+  nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:0 5vw}
+  .nav-inner{display:flex;align-items:center;height:64px;gap:16px}
+  .nav-brand{font-size:24px;font-weight:800;letter-spacing:-1px;text-decoration:none;margin-right:auto}
+  .nav-brand .sw{color:var(--dark)}.nav-brand .dr{color:var(--purple)}
+  .nav-link{font-size:14px;color:var(--gray);text-decoration:none;padding:6px 10px;border-radius:8px;transition:.2s}
+  .nav-link:hover{background:var(--purple-l);color:var(--purple-d)}
+  .nav-link.active{color:var(--purple);font-weight:600}
+  .cart-btn{display:flex;align-items:center;gap:8px;background:var(--purple);color:#fff;border:none;padding:10px 20px;border-radius:30px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;position:relative}
+  .cart-btn:hover{background:var(--purple-d)}
+  .cart-count{background:#ec4899;color:#fff;font-size:11px;font-weight:700;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:absolute;top:-6px;right:-6px}
+  .search-box{display:flex;align-items:center;background:#f3f4f6;border-radius:20px;padding:8px 16px;gap:8px;font-size:14px;color:var(--gray);border:1px solid var(--border)}
+
+  /* ── BREADCRUMB ── */
+  .breadcrumb{padding:12px 5vw;font-size:13px;color:var(--gray)}
+  .breadcrumb a{color:var(--gray);text-decoration:none}.breadcrumb a:hover{color:var(--purple)}
+  .breadcrumb span{color:var(--dark);font-weight:500}
+
+  /* ── HERO BANNER ── */
+  .hero-banner{background:linear-gradient(135deg,#0f172a 0%,#1e1040 50%,#0c2340 100%);padding:48px 5vw;display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .hero-text h1{font-size:clamp(28px,4vw,48px);font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.1;margin-bottom:12px}
+  .hero-text h1 span{color:#a78bfa}
+  .hero-text p{color:#94a3b8;font-size:16px;max-width:460px;line-height:1.6;margin-bottom:24px}
+  .hero-badges{display:flex;gap:8px;flex-wrap:wrap}
+  .hb{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#e9e4ff;font-size:12px;padding:5px 14px;border-radius:20px}
+  .hero-bottles{display:flex;gap:12px}
+  .mini-bottle{width:56px;height:110px;border-radius:14px 14px 10px 10px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);cursor:pointer;transition:.2s;border:2px solid rgba(255,255,255,.2)}
+  .mini-bottle:hover{transform:translateY(-4px) scale(1.05)}
+
+  /* ── MAIN LAYOUT ── */
+  .shop-layout{display:grid;grid-template-columns:240px 1fr;gap:32px;padding:32px 5vw;max-width:1400px;margin:0 auto}
+  @media(max-width:768px){.shop-layout{grid-template-columns:1fr}.sidebar{display:none}}
+
+  /* ── SIDEBAR ── */
+  .sidebar{}
+  .filter-card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:20px;margin-bottom:16px}
+  .filter-card h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);margin-bottom:14px}
+  .filter-item{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer}
+  .filter-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple);cursor:pointer}
+  .filter-item label{font-size:14px;color:var(--dark);cursor:pointer}
+  .filter-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+  .price-range{width:100%;accent-color:var(--purple);margin:8px 0}
+  .price-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--gray)}
+  .promo-box{background:linear-gradient(135deg,var(--purple-d),var(--purple));border-radius:14px;padding:20px;color:#fff}
+  .promo-box h3{font-size:16px;font-weight:700;margin-bottom:8px}
+  .promo-box p{font-size:13px;color:#ddd6fe;margin-bottom:12px}
+  .promo-code{background:rgba(255,255,255,.2);border:1px dashed rgba(255,255,255,.4);border-radius:8px;padding:8px 12px;font-family:monospace;font-size:14px;font-weight:700;text-align:center;letter-spacing:.1em}
+
+  /* ── PRODUCTS ── */
+  .products-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .products-header h2{font-size:22px;font-weight:700}
+  .products-header .result-count{font-size:14px;color:var(--gray)}
+  .sort-select{border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--dark);background:#fff;cursor:pointer}
+  .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+
+  /* ── PRODUCT CARD ── */
+  .product-card{background:#fff;border-radius:18px;border:1px solid var(--border);overflow:hidden;transition:.25s;cursor:pointer;display:flex;flex-direction:column}
+  .product-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.1);border-color:var(--purple)}
+  .product-img{height:220px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+  .product-img .bottle-shape{width:80px;height:180px;border-radius:18px 18px 14px 14px;position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px}
+  .product-img .bottle-neck{width:32px;height:28px;border-radius:6px 6px 0 0;position:absolute;top:-24px;left:24px}
+  .product-img .bottle-cap{width:28px;height:12px;border-radius:4px;position:absolute;top:-34px;left:26px}
+  .bottle-label{position:absolute;width:62px;background:rgba(255,255,255,.92);border-radius:8px;padding:6px 4px;text-align:center;bottom:28px}
+  .bottle-label .bl-brand{font-size:7px;font-weight:700;color:#1e1147}
+  .bottle-label .bl-name{font-size:9px;font-weight:900;color:#1e1147}
+  .badge-new{position:absolute;top:12px;left:12px;background:#ec4899;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .badge-sale{position:absolute;top:12px;right:12px;background:#d97706;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .badge-best{position:absolute;top:12px;left:12px;background:#7c3aed;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+  .wishlist-btn{position:absolute;top:12px;right:12px;width:32px;height:32px;background:#fff;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;transition:.2s}
+  .wishlist-btn:hover{background:var(--purple-l);border-color:var(--purple)}
+  .wishlist-btn.liked{background:#fce7f3;border-color:#ec4899}
+
+  .product-body{padding:18px;flex:1;display:flex;flex-direction:column}
+  .product-category{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--gray);margin-bottom:6px}
+  .product-name{font-size:18px;font-weight:700;margin-bottom:4px}
+  .product-sub{font-size:13px;color:var(--gray);margin-bottom:10px}
+  .product-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;border:1px solid}
+  .color-change-bar{display:flex;gap:8px;align-items:center;padding:8px 12px;border-radius:10px;margin-bottom:14px;font-size:11px;font-weight:600}
+  .color-dot{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.5)}
+  .product-stars{display:flex;gap:2px;margin-bottom:6px}
+  .star{color:#f59e0b;font-size:14px}
+  .review-count{font-size:12px;color:var(--gray);margin-left:4px}
+  .product-price-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;margin-top:auto}
+  .price-main{font-size:24px;font-weight:900;color:var(--dark)}
+  .price-original{font-size:15px;color:var(--gray);text-decoration:line-through}
+  .price-unit{font-size:12px;color:var(--gray)}
+  .add-btn{width:100%;background:var(--purple);color:#fff;border:none;padding:12px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .add-btn:hover{background:var(--purple-d);transform:translateY(-1px)}
+  .add-btn.added{background:#16a34a}
+
+  /* ── PACK CARDS ── */
+  .pack-section{padding:0 5vw 48px;max-width:1400px;margin:0 auto}
+  .pack-section h2{font-size:26px;font-weight:800;margin-bottom:24px}
+  .packs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+  .pack-card{background:#fff;border-radius:18px;border:1px solid var(--border);padding:24px;transition:.25s;cursor:pointer;display:flex;flex-direction:column;gap:12px}
+  .pack-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.1);border-color:var(--purple)}
+  .pack-card.featured{border:2px solid var(--purple);background:linear-gradient(135deg,#f5f3ff,#fdf2f8)}
+  .pack-card.featured .pack-badge{background:var(--purple);color:#fff;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;display:inline-block;margin-bottom:4px}
+  .pack-name{font-size:20px;font-weight:800}
+  .pack-desc{font-size:14px;color:var(--gray);line-height:1.5}
+  .pack-contents{display:flex;gap:6px;flex-wrap:wrap}
+  .pack-item{font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid}
+  .pack-price-row{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+  .pack-price{font-size:28px;font-weight:900}
+  .pack-save{background:#f0fdf4;color:#166534;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px}
+  .pack-btn{background:var(--purple);color:#fff;border:none;padding:13px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;width:100%}
+  .pack-btn:hover{background:var(--purple-d)}
+
+  /* ── SUBSCRIPTION BANNER ── */
+  .sub-banner{background:linear-gradient(135deg,#1e1040,#0f172a);margin:0 5vw 48px;border-radius:20px;padding:40px;display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+  .sub-text h2{font-size:26px;font-weight:800;color:#fff;margin-bottom:8px}
+  .sub-text p{font-size:15px;color:#94a3b8;max-width:480px;line-height:1.6;margin-bottom:20px}
+  .sub-features{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:24px}
+  .sub-feat{display:flex;align-items:center;gap:8px;font-size:14px;color:#c4b5fd}
+  .sub-feat::before{content:'✓';font-weight:700;color:#a78bfa}
+  .sub-form{display:flex;gap:12px;flex-wrap:wrap}
+  .sub-input{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:13px 18px;border-radius:12px;font-size:14px;width:260px;outline:none}
+  .sub-input::placeholder{color:rgba(255,255,255,.4)}
+  .sub-submit{background:var(--purple);color:#fff;border:none;padding:13px 24px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;white-space:nowrap}
+  .sub-submit:hover{background:#6d28d9}
+  .sub-price{font-size:32px;font-weight:900;color:#fff;text-align:center}
+  .sub-price-label{font-size:13px;color:#94a3b8;text-align:center}
+  .sub-price-note{font-size:12px;color:#7c3aed;text-align:center;margin-top:4px}
+
+  /* ── CART DRAWER ── */
+  .cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;opacity:0;transition:.3s}
+  .cart-overlay.open{display:flex;opacity:1}
+  .cart-drawer{position:fixed;right:0;top:0;bottom:0;width:min(420px,100vw);background:#fff;z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:.3s;overflow:hidden}
+  .cart-drawer.open{transform:translateX(0)}
+  .cart-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+  .cart-header h3{font-size:18px;font-weight:700}
+  .cart-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray);padding:4px;border-radius:8px}
+  .cart-close:hover{background:#f3f4f6}
+  .cart-body{flex:1;overflow-y:auto;padding:20px 24px}
+  .cart-empty{text-align:center;padding:60px 20px;color:var(--gray)}
+  .cart-empty .empty-icon{font-size:48px;margin-bottom:16px}
+  .cart-item{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)}
+  .cart-item-img{width:64px;height:64px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .cart-item-info{flex:1}
+  .cart-item-name{font-size:15px;font-weight:600;margin-bottom:4px}
+  .cart-item-sub{font-size:12px;color:var(--gray)}
+  .cart-item-price{font-size:16px;font-weight:700;margin-top:6px}
+  .qty-ctrl{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .qty-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s}
+  .qty-btn:hover{background:var(--purple-l);border-color:var(--purple)}
+  .qty-num{font-size:14px;font-weight:600;min-width:20px;text-align:center}
+  .cart-item-del{color:var(--gray);background:none;border:none;cursor:pointer;font-size:14px;padding:4px;border-radius:6px}
+  .cart-item-del:hover{background:#fee2e2;color:#dc2626}
+  .cart-footer{padding:20px 24px;border-top:1px solid var(--border)}
+  .cart-totals{margin-bottom:16px}
+  .cart-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px;color:var(--gray)}
+  .cart-row.total{font-size:18px;font-weight:700;color:var(--dark);border-top:1px solid var(--border);padding-top:12px;margin-top:4px}
+  .checkout-btn{width:100%;background:var(--purple);color:#fff;border:none;padding:16px;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;transition:.2s;margin-bottom:10px}
+  .checkout-btn:hover{background:var(--purple-d)}
+  .continue-btn{width:100%;background:#fff;color:var(--dark);border:1px solid var(--border);padding:13px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
+  .continue-btn:hover{background:#f3f4f6}
+  .cart-security{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--gray);margin-top:12px}
+
+  /* ── TOAST ── */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#16a34a;color:#fff;padding:14px 24px;border-radius:14px;font-size:14px;font-weight:600;z-index:300;transition:.4s;opacity:0;white-space:nowrap}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+  /* ── FOOTER ── */
+  footer{background:#1e1147;color:#fff;padding:48px 5vw 24px;margin-top:48px}
+  .footer-top{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:32px}
+  footer h4{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#a78bfa;margin-bottom:14px}
+  footer p,footer a{font-size:13px;color:#94a3b8;line-height:1.8;text-decoration:none;display:block}
+  footer a:hover{color:#fff}
+  .footer-bottom{border-top:1px solid #2d2067;padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+  .footer-bottom p{font-size:12px;color:#6b7280}
+  .payment-icons{display:flex;gap:8px}
+  .payment-icon{background:#2d2067;color:#a78bfa;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="#"><span class="sw">Sweet</span><span class="dr">Drop</span></a>
+    <a class="nav-link active" href="#">Botiga</a>
+    <a class="nav-link" href="#">Sobre nosaltres</a>
+    <a class="nav-link" href="#">Blog</a>
+    <div class="search-box">🔍 Cerca productes...</div>
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Cistella
+      <span class="cart-count" id="cart-count">0</span>
+    </button>
+  </div>
+</nav>
+
+<div class="breadcrumb">
+  <a href="#">Inici</a> › <span>Botiga</span>
+</div>
+
+<!-- HERO -->
+<div class="hero-banner">
+  <div class="hero-text">
+    <h1>La beguda que<br><span>canvia de color</span></h1>
+    <p>100% natural, sense sucre afegit, vegana i lliure de gluten. Serveix-la ben freda i gaudeix de la màgia.</p>
+    <div class="hero-badges">
+      <span class="hb">100% Natural</span>
+      <span class="hb">0g sucre afegit</span>
+      <span class="hb">Vegà</span>
+      <span class="hb">Sense gluten</span>
+      <span class="hb">Made in Catalunya</span>
+    </div>
+  </div>
+  <div class="hero-bottles">
+    <div class="mini-bottle" style="background:linear-gradient(180deg,#0369a1,#38bdf8,#7dd3fc)" onclick="scrollToProduct('arctic')">
+      <div style="font-size:9px;text-align:center">Arctic</div>
+    </div>
+    <div class="mini-bottle" style="background:linear-gradient(180deg,#4c1d95,#8b5cf6,#c4b5fd)" onclick="scrollToProduct('dusk')">
+      <div style="font-size:9px;text-align:center">Dusk</div>
+    </div>
+    <div class="mini-bottle" style="background:linear-gradient(180deg,#831843,#ec4899,#f9a8d4)" onclick="scrollToProduct('bloom')">
+      <div style="font-size:9px;text-align:center">Bloom</div>
+    </div>
+    <div class="mini-bottle" style="background:linear-gradient(180deg,#78350f,#f59e0b,#fde68a)" onclick="scrollToProduct('sol')">
+      <div style="font-size:9px;text-align:center">Sol</div>
+    </div>
+  </div>
+</div>
+
+<!-- SHOP LAYOUT -->
+<div class="shop-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="filter-card">
+      <h3>Filtrar per</h3>
+      <div class="filter-item">
+        <input type="checkbox" id="f-natural" checked>
+        <label for="f-natural">100% Natural</label>
+      </div>
+      <div class="filter-item">
+        <input type="checkbox" id="f-vegan" checked>
+        <label for="f-vegan">Vegà</label>
+      </div>
+      <div class="filter-item">
+        <input type="checkbox" id="f-gluten" checked>
+        <label for="f-gluten">Sense gluten</label>
+      </div>
+      <div class="filter-item">
+        <input type="checkbox" id="f-sugar" checked>
+        <label for="f-sugar">0g sucre afegit</label>
+      </div>
+    </div>
+    <div class="filter-card">
+      <h3>Per sabor</h3>
+      <div class="filter-item">
+        <div class="filter-dot" style="background:#38bdf8"></div>
+        <input type="checkbox" id="f-arctic" checked>
+        <label for="f-arctic">Arctic</label>
+      </div>
+      <div class="filter-item">
+        <div class="filter-dot" style="background:#8b5cf6"></div>
+        <input type="checkbox" id="f-dusk" checked>
+        <label for="f-dusk">Dusk</label>
+      </div>
+      <div class="filter-item">
+        <div class="filter-dot" style="background:#ec4899"></div>
+        <input type="checkbox" id="f-bloom" checked>
+        <label for="f-bloom">Bloom</label>
+      </div>
+      <div class="filter-item">
+        <div class="filter-dot" style="background:#f59e0b"></div>
+        <input type="checkbox" id="f-sol" checked>
+        <label for="f-sol">Sol</label>
+      </div>
+    </div>
+    <div class="filter-card">
+      <h3>Preu màxim</h3>
+      <input type="range" class="price-range" min="1" max="30" value="30" oninput="this.nextElementSibling.children[1].textContent=this.value+'€'">
+      <div class="price-labels"><span>1€</span><span>30€</span></div>
+    </div>
+    <div class="promo-box">
+      <h3>🎉 Oferta de llançament</h3>
+      <p>Usa el codi per a un 15% de descompte en la teva primera comanda</p>
+      <div class="promo-code">SWEETDROP15</div>
+    </div>
+  </aside>
+
+  <!-- PRODUCTS -->
+  <main>
+    <div class="products-header">
+      <div>
+        <h2>Tots els productes</h2>
+        <span class="result-count">8 productes disponibles</span>
+      </div>
+      <select class="sort-select">
+        <option>Ordenar: Més populars</option>
+        <option>Preu: menor a major</option>
+        <option>Preu: major a menor</option>
+        <option>Novetat</option>
+      </select>
+    </div>
+
+    <div class="products-grid" id="products-grid">
+
+      <!-- ARCTIC -->
+      <div class="product-card" id="prod-arctic">
+        <div class="product-img" style="background:linear-gradient(160deg,#e0f2fe,#bae6fd)">
+          <div class="bottle-shape" style="background:linear-gradient(180deg,#0369a1 0%,#38bdf8 50%,#7dd3fc 100%)">
+            <div class="bottle-neck" style="background:#0284c7"></div>
+            <div class="bottle-cap" style="background:#075985"></div>
+            <div class="bottle-label">
+              <div class="bl-brand">SweetDrop</div>
+              <div class="bl-name">ARCTIC</div>
+            </div>
+          </div>
+          <span class="badge-new">NOU</span>
+          <button class="wishlist-btn" onclick="toggleWish(this)" title="Afegir als desitjos">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Beguda botànica funcional</div>
+          <div class="product-name" style="color:#0c447c">Arctic</div>
+          <div class="product-sub">Nabiu silvestre & Menta polar</div>
+          <div class="product-tags">
+            <span class="tag" style="background:#e0f2fe;color:#075985;border-color:#38bdf8">Natural</span>
+            <span class="tag" style="background:#e0f2fe;color:#075985;border-color:#38bdf8">Refrescant</span>
+            <span class="tag" style="background:#e0f2fe;color:#075985;border-color:#38bdf8">Vitamines B</span>
+          </div>
+          <div class="color-change-bar" style="background:#e0f2fe">
+            <div class="color-dot" style="background:#1d4ed8"></div>
+            <span style="color:#0c447c">Blau intens</span>
+            <span style="color:#6b7280">→</span>
+            <div class="color-dot" style="background:#22d3ee"></div>
+            <span style="color:#0c447c">Turquesa</span>
+          </div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            <span class="review-count">(128 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main">2,49€</span>
+            <span class="price-original">2,99€</span>
+            <span class="price-unit">/ 330ml</span>
+          </div>
+          <button class="add-btn" onclick="addToCart(this,'Arctic','Nabiu i Menta','2,49€','#38bdf8')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+      <!-- DUSK -->
+      <div class="product-card" id="prod-dusk">
+        <div class="product-img" style="background:linear-gradient(160deg,#ede9fe,#ddd6fe)">
+          <div class="bottle-shape" style="background:linear-gradient(180deg,#4c1d95 0%,#8b5cf6 50%,#c4b5fd 100%)">
+            <div class="bottle-neck" style="background:#6d28d9"></div>
+            <div class="bottle-cap" style="background:#4c1d95"></div>
+            <div class="bottle-label">
+              <div class="bl-brand">SweetDrop</div>
+              <div class="bl-name">DUSK</div>
+            </div>
+          </div>
+          <span class="badge-best">Més venut</span>
+          <button class="wishlist-btn" onclick="toggleWish(this)" title="Afegir als desitjos">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Beguda botànica funcional</div>
+          <div class="product-name" style="color:#3c3489">Dusk</div>
+          <div class="product-sub">Raïm negre & Lavanda</div>
+          <div class="product-tags">
+            <span class="tag" style="background:#ede9fe;color:#3c3489;border-color:#8b5cf6">Natural</span>
+            <span class="tag" style="background:#ede9fe;color:#3c3489;border-color:#8b5cf6">Sofisticat</span>
+            <span class="tag" style="background:#ede9fe;color:#3c3489;border-color:#8b5cf6">Ginkgo</span>
+          </div>
+          <div class="color-change-bar" style="background:#ede9fe">
+            <div class="color-dot" style="background:#5b21b6"></div>
+            <span style="color:#3c3489">Violeta intens</span>
+            <span style="color:#6b7280">→</span>
+            <div class="color-dot" style="background:#ddd6fe;border-color:#8b5cf6"></div>
+            <span style="color:#3c3489">Lila suau</span>
+          </div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star" style="color:#d1d5db">★</span>
+            <span class="review-count">(94 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main">2,49€</span>
+            <span class="price-original">2,99€</span>
+            <span class="price-unit">/ 330ml</span>
+          </div>
+          <button class="add-btn" onclick="addToCart(this,'Dusk','Raïm i Lavanda','2,49€','#8b5cf6')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+      <!-- BLOOM -->
+      <div class="product-card" id="prod-bloom">
+        <div class="product-img" style="background:linear-gradient(160deg,#fce7f3,#fbcfe8)">
+          <div class="bottle-shape" style="background:linear-gradient(180deg,#831843 0%,#ec4899 50%,#f9a8d4 100%)">
+            <div class="bottle-neck" style="background:#be185d"></div>
+            <div class="bottle-cap" style="background:#831843"></div>
+            <div class="bottle-label">
+              <div class="bl-brand">SweetDrop</div>
+              <div class="bl-name">BLOOM</div>
+            </div>
+          </div>
+          <button class="wishlist-btn liked" onclick="toggleWish(this)" title="Afegir als desitjos">♥</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Beguda botànica funcional</div>
+          <div class="product-name" style="color:#72243e">Bloom</div>
+          <div class="product-sub">Maduixa silvestre & Hibisc</div>
+          <div class="product-tags">
+            <span class="tag" style="background:#fce7f3;color:#72243e;border-color:#ec4899">Natural</span>
+            <span class="tag" style="background:#fce7f3;color:#72243e;border-color:#ec4899">Vibrant</span>
+            <span class="tag" style="background:#fce7f3;color:#72243e;border-color:#ec4899">Ashwag.</span>
+          </div>
+          <div class="color-change-bar" style="background:#fce7f3">
+            <div class="color-dot" style="background:#be185d"></div>
+            <span style="color:#72243e">Rosa coral</span>
+            <span style="color:#6b7280">→</span>
+            <div class="color-dot" style="background:#fed7aa;border-color:#fb923c"></div>
+            <span style="color:#72243e">Taronja</span>
+          </div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            <span class="review-count">(156 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main">2,49€</span>
+            <span class="price-original">2,99€</span>
+            <span class="price-unit">/ 330ml</span>
+          </div>
+          <button class="add-btn" onclick="addToCart(this,'Bloom','Maduixa i Hibisc','2,49€','#ec4899')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+      <!-- SOL -->
+      <div class="product-card" id="prod-sol">
+        <div class="product-img" style="background:linear-gradient(160deg,#fef3c7,#fde68a)">
+          <div class="bottle-shape" style="background:linear-gradient(180deg,#78350f 0%,#f59e0b 50%,#fde68a 100%)">
+            <div class="bottle-neck" style="background:#d97706"></div>
+            <div class="bottle-cap" style="background:#78350f"></div>
+            <div class="bottle-label">
+              <div class="bl-brand">SweetDrop</div>
+              <div class="bl-name">SOL</div>
+            </div>
+          </div>
+          <span class="badge-sale">Llançament</span>
+          <button class="wishlist-btn" onclick="toggleWish(this)" title="Afegir als desitjos">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Beguda botànica funcional</div>
+          <div class="product-name" style="color:#633806">Sol</div>
+          <div class="product-sub">Mango madur & Cúrcuma</div>
+          <div class="product-tags">
+            <span class="tag" style="background:#fef3c7;color:#633806;border-color:#f59e0b">Natural</span>
+            <span class="tag" style="background:#fef3c7;color:#633806;border-color:#f59e0b">Tropical</span>
+            <span class="tag" style="background:#fef3c7;color:#633806;border-color:#f59e0b">Gingebre</span>
+          </div>
+          <div class="color-change-bar" style="background:#fef3c7">
+            <div class="color-dot" style="background:#eab308"></div>
+            <span style="color:#633806">Groc viu</span>
+            <span style="color:#6b7280">→</span>
+            <div class="color-dot" style="background:#b45309"></div>
+            <span style="color:#633806">Ambre daurat</span>
+          </div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star" style="color:#d1d5db">★</span>
+            <span class="review-count">(87 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main">2,49€</span>
+            <span class="price-original">2,99€</span>
+            <span class="price-unit">/ 330ml</span>
+          </div>
+          <button class="add-btn" onclick="addToCart(this,'Sol','Mango i Cúrcuma','2,49€','#f59e0b')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+      <!-- CAIXA 12u ARCTIC -->
+      <div class="product-card">
+        <div class="product-img" style="background:linear-gradient(160deg,#e0f2fe,#bae6fd);align-items:flex-end;padding:12px">
+          <div style="display:flex;gap:4px;align-items:flex-end">
+            <div style="width:36px;height:90px;border-radius:10px 10px 8px 8px;background:linear-gradient(180deg,#0369a1,#38bdf8,#7dd3fc)"></div>
+            <div style="width:36px;height:90px;border-radius:10px 10px 8px 8px;background:linear-gradient(180deg,#0369a1,#38bdf8,#7dd3fc)"></div>
+            <div style="width:36px;height:90px;border-radius:10px 10px 8px 8px;background:linear-gradient(180deg,#0369a1,#38bdf8,#7dd3fc)"></div>
+          </div>
+          <span class="badge-sale">-17%</span>
+          <button class="wishlist-btn" onclick="toggleWish(this)">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Pack familiar</div>
+          <div class="product-name" style="color:#0c447c">Caixa Arctic × 12</div>
+          <div class="product-sub">12 ampolles de 330ml</div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            <span class="review-count">(42 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main">24,99€</span>
+            <span class="price-original">35,88€</span>
+          </div>
+          <div style="font-size:12px;color:#16a34a;font-weight:600;margin-bottom:12px">Estalvies 10,89€ (30% menys)</div>
+          <button class="add-btn" onclick="addToCart(this,'Caixa Arctic×12','12 ampolles','24,99€','#38bdf8')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+      <!-- PACK 4 SABORS -->
+      <div class="product-card" style="border:2px solid #7c3aed">
+        <div class="product-img" style="background:linear-gradient(160deg,#f5f3ff,#fce7f3);align-items:flex-end;padding:12px">
+          <div style="display:flex;gap:4px;align-items:flex-end">
+            <div style="width:32px;height:80px;border-radius:9px 9px 7px 7px;background:linear-gradient(180deg,#0369a1,#38bdf8)"></div>
+            <div style="width:32px;height:80px;border-radius:9px 9px 7px 7px;background:linear-gradient(180deg,#4c1d95,#8b5cf6)"></div>
+            <div style="width:32px;height:80px;border-radius:9px 9px 7px 7px;background:linear-gradient(180deg,#831843,#ec4899)"></div>
+            <div style="width:32px;height:80px;border-radius:9px 9px 7px 7px;background:linear-gradient(180deg,#78350f,#f59e0b)"></div>
+          </div>
+          <span class="badge-best">Recomanat</span>
+          <button class="wishlist-btn" onclick="toggleWish(this)">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Pack descoberta</div>
+          <div class="product-name" style="color:#4c1d95">Pack 4 Sabors</div>
+          <div class="product-sub">1 ampolla de cada sabor</div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            <span class="review-count">(203 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main" style="color:#7c3aed">9,99€</span>
+            <span class="price-original">11,96€</span>
+          </div>
+          <div style="font-size:12px;color:#16a34a;font-weight:600;margin-bottom:12px">Estalvies 1,97€ · Perfecte per regalar 🎁</div>
+          <button class="add-btn" onclick="addToCart(this,'Pack 4 Sabors','Arctic+Dusk+Bloom+Sol','9,99€','#7c3aed')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+      <!-- TOTE BAG -->
+      <div class="product-card">
+        <div class="product-img" style="background:linear-gradient(160deg,#f5f3ff,#ede9fe)">
+          <div style="width:100px;height:120px;background:#1e1147;border-radius:4px 4px 8px 8px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;position:relative">
+            <div style="position:absolute;top:-20px;left:25px;width:50px;height:20px;border:3px solid #1e1147;border-bottom:none;border-radius:20px 20px 0 0;background:transparent"></div>
+            <span style="color:#a78bfa;font-size:14px;font-weight:900">Sweet</span>
+            <span style="color:#7c3aed;font-size:14px;font-weight:900">Drop</span>
+          </div>
+          <button class="wishlist-btn" onclick="toggleWish(this)">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Merchandising</div>
+          <div class="product-name">Tote bag SweetDrop</div>
+          <div class="product-sub">Cotó orgànic 100%</div>
+          <div class="product-tags">
+            <span class="tag" style="background:#ede9fe;color:#4c1d95;border-color:#7c3aed">Eco</span>
+            <span class="tag" style="background:#ede9fe;color:#4c1d95;border-color:#7c3aed">Reutilitzable</span>
+          </div>
+          <div style="height:50px"></div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+            <span class="review-count">(31 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main">12,99€</span>
+          </div>
+          <button class="add-btn" onclick="addToCart(this,'Tote Bag SweetDrop','Cotó orgànic','12,99€','#7c3aed')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+      <!-- BOTELLA INOXIDABLE -->
+      <div class="product-card">
+        <div class="product-img" style="background:linear-gradient(160deg,#f1f5f9,#e2e8f0)">
+          <div style="width:50px;height:160px;background:linear-gradient(180deg,#94a3b8,#cbd5e1,#e2e8f0);border-radius:14px 14px 10px 10px;display:flex;align-items:center;justify-content:center">
+            <span style="color:#1e1147;font-size:8px;font-weight:700;transform:rotate(-90deg);white-space:nowrap">SweetDrop</span>
+          </div>
+          <button class="wishlist-btn" onclick="toggleWish(this)">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">Merchandising</div>
+          <div class="product-name">Ampolla acer inoxidable</div>
+          <div class="product-sub">500ml · Acer 18/8</div>
+          <div class="product-tags">
+            <span class="tag" style="background:#f1f5f9;color:#475569;border-color:#94a3b8">Eco</span>
+            <span class="tag" style="background:#f1f5f9;color:#475569;border-color:#94a3b8">Tèrmica</span>
+          </div>
+          <div style="height:50px"></div>
+          <div class="product-stars">
+            <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star" style="color:#d1d5db">★</span>
+            <span class="review-count">(19 ressenyes)</span>
+          </div>
+          <div class="product-price-row">
+            <span class="price-main">18,99€</span>
+          </div>
+          <button class="add-btn" onclick="addToCart(this,'Ampolla Acer Inox.','500ml tèrmica','18,99€','#64748b')">🛒 Afegir a la cistella</button>
+        </div>
+      </div>
+
+    </div><!-- /products-grid -->
+  </main>
+</div><!-- /shop-layout -->
+
+<!-- PACKS SECTION -->
+<div class="pack-section">
+  <h2>🎁 Formats i packs especials</h2>
+  <div class="packs-grid">
+    <div class="pack-card featured">
+      <div class="pack-badge">⭐ Més popular</div>
+      <div class="pack-name" style="color:#4c1d95">Subscripció mensual</div>
+      <div class="pack-desc">Cada mes, 12 ampolles a la teva porta. Tria els sabors que vulguis, canvia quan vulguis, cancel·la quan vulguis.</div>
+      <div class="pack-contents">
+        <span class="pack-item" style="background:#e0f2fe;color:#0c447c;border-color:#38bdf8">Arctic ×3</span>
+        <span class="pack-item" style="background:#ede9fe;color:#3c3489;border-color:#8b5cf6">Dusk ×3</span>
+        <span class="pack-item" style="background:#fce7f3;color:#72243e;border-color:#ec4899">Bloom ×3</span>
+        <span class="pack-item" style="background:#fef3c7;color:#633806;border-color:#f59e0b">Sol ×3</span>
+      </div>
+      <div class="pack-price-row">
+        <span class="pack-price" style="color:#7c3aed">19,99€</span>
+        <span style="color:#6b7280;font-size:14px">/mes</span>
+        <span class="pack-save">Estalvies 33%</span>
+      </div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:4px">Enviament gratuït · Cancel·lació lliure · Personalitzable</div>
+      <button class="pack-btn" onclick="addToCart(this,'Subscripció Mensual','12 ampolles/mes','19,99€/mes','#7c3aed')">Subscriure'm ara →</button>
+    </div>
+    <div class="pack-card">
+      <div class="pack-name">Pack Descoberta</div>
+      <div class="pack-desc">Prova els 4 sabors per primera vegada. El paquet perfecte per conèixer SweetDrop o per regalar.</div>
+      <div class="pack-contents">
+        <span class="pack-item" style="background:#e0f2fe;color:#0c447c;border-color:#38bdf8">Arctic ×1</span>
+        <span class="pack-item" style="background:#ede9fe;color:#3c3489;border-color:#8b5cf6">Dusk ×1</span>
+        <span class="pack-item" style="background:#fce7f3;color:#72243e;border-color:#ec4899">Bloom ×1</span>
+        <span class="pack-item" style="background:#fef3c7;color:#633806;border-color:#f59e0b">Sol ×1</span>
+      </div>
+      <div class="pack-price-row">
+        <span class="pack-price">9,99€</span>
+        <span class="pack-save">Estalvies 1,97€</span>
+      </div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:4px">Enviament 2,90€ · Lliurament 24-48h</div>
+      <button class="pack-btn" onclick="addToCart(this,'Pack Descoberta','4 sabors','9,99€','#7c3aed')">Afegir a la cistella</button>
+    </div>
+    <div class="pack-card">
+      <div class="pack-name">Caixa Restaurant/Gym</div>
+      <div class="pack-desc">Format professional per a bars, restaurants, gimnasos i espais wellness. Preu especial per a negocis.</div>
+      <div class="pack-contents">
+        <span class="pack-item" style="background:#f0fdf4;color:#166534;border-color:#16a34a">12 u. a escollir</span>
+        <span class="pack-item" style="background:#f0fdf4;color:#166534;border-color:#16a34a">Mix de sabors</span>
+      </div>
+      <div class="pack-price-row">
+        <span class="pack-price">24,99€</span>
+        <span class="pack-save">Estalvies 30%</span>
+      </div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:4px">Enviament gratuït · Factura B2B disponible</div>
+      <button class="pack-btn" onclick="addToCart(this,'Caixa Restaurant/Gym','12 ampolles','24,99€','#16a34a')">Afegir a la cistella</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBSCRIPTION BANNER -->
+<div class="sub-banner" style="margin:0 5vw 48px;border-radius:20px">
+  <div class="sub-text" style="flex:1">
+    <h2>💌 Newsletter SweetDrop</h2>
+    <p>Rep les últimes novetats, sabors exclusius d'edició limitada i ofertes especials directament al teu correu.</p>
+    <div class="sub-features">
+      <span class="sub-feat">Descompte 10% benvinguda</span>
+      <span class="sub-feat">Sabors exclusius primers</span>
+      <span class="sub-feat">Sense spam, mai</span>
+    </div>
+    <div class="sub-form">
+      <input class="sub-input" type="email" placeholder="El teu correu electrònic">
+      <button class="sub-submit">Subscriure'm 🎁</button>
+    </div>
+  </div>
+  <div style="text-align:center">
+    <div class="sub-price">19,99€</div>
+    <div class="sub-price-label">subscripció mensual</div>
+    <div class="sub-price-note">o 2,49€/ampolla en oferta</div>
+    <div style="margin-top:16px;display:flex;gap:8px;justify-content:center">
+      <div style="width:40px;height:80px;border-radius:10px;background:linear-gradient(180deg,#0369a1,#38bdf8)"></div>
+      <div style="width:40px;height:80px;border-radius:10px;background:linear-gradient(180deg,#4c1d95,#8b5cf6)"></div>
+      <div style="width:40px;height:80px;border-radius:10px;background:linear-gradient(180deg,#831843,#ec4899)"></div>
+      <div style="width:40px;height:80px;border-radius:10px;background:linear-gradient(180deg,#78350f,#f59e0b)"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-top">
+    <div style="flex:1.5">
+      <div style="font-size:26px;font-weight:800;margin-bottom:10px"><span style="color:#fff">Sweet</span><span style="color:#a78bfa">Drop</span></div>
+      <p>La beguda botànica funcional que canvia de color.</p>
+      <p style="margin-top:8px">sweetdrop.com · info@sweetdrop.com</p>
+      <p>@sweetdrop · #SweetDropMoment</p>
+    </div>
+    <div>
+      <h4>Productes</h4>
+      <a href="#">Arctic — Nabiu i Menta</a>
+      <a href="#">Dusk — Raïm i Lavanda</a>
+      <a href="#">Bloom — Maduixa i Hibisc</a>
+      <a href="#">Sol — Mango i Cúrcuma</a>
+      <a href="#">Pack 4 Sabors</a>
+      <a href="#">Subscripció mensual</a>
+    </div>
+    <div>
+      <h4>Empresa</h4>
+      <a href="#">Sobre nosaltres</a>
+      <a href="#">Sostenibilitat</a>
+      <a href="#">Blog</a>
+      <a href="#">Premsa</a>
+      <p style="margin-top:8px">SweetDrop, SL</p>
+      <p>Pol. Ind. Zona Franca</p>
+      <p>08040 Barcelona</p>
+    </div>
+    <div>
+      <h4>Ajuda</h4>
+      <a href="#">Com funciona el canvi de color?</a>
+      <a href="#">Enviaments i devolucions</a>
+      <a href="#">Preguntes freqüents</a>
+      <a href="#">Contacte</a>
+      <a href="#">Política de privacitat</a>
+      <a href="#">Avís legal</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 SweetDrop, SL · FP Grau Superior d'Administració i Finances · Curs 2025–2026 · <em>Projecte educatiu — no és una botiga real</em></p>
+    <div class="payment-icons">
+      <span class="payment-icon">VISA</span>
+      <span class="payment-icon">MC</span>
+      <span class="payment-icon">PayPal</span>
+      <span class="payment-icon">Bizum</span>
+      <span class="payment-icon">🔒 SSL</span>
+    </div>
+  </div>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h3>La meva cistella 🛒</h3>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-body">
+    <div class="cart-empty" id="cart-empty">
+      <div class="empty-icon">🛒</div>
+      <p style="font-size:16px;font-weight:600;margin-bottom:8px">La cistella és buida</p>
+      <p style="font-size:14px">Afegeix algun producte per continuar</p>
+    </div>
+  </div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-totals">
+      <div class="cart-row"><span>Subtotal</span><span id="cart-subtotal">0,00€</span></div>
+      <div class="cart-row"><span>Enviament</span><span id="cart-shipping">2,90€</span></div>
+      <div class="cart-row"><span>Descompte (SWEETDROP15)</span><span id="cart-discount" style="color:#16a34a">-0,00€</span></div>
+      <div class="cart-row total"><span>Total</span><span id="cart-total">0,00€</span></div>
+    </div>
+    <button class="checkout-btn" onclick="checkout()">Finalitzar compra →</button>
+    <button class="continue-btn" onclick="closeCart()">Continuar comprant</button>
+    <div class="cart-security">🔒 Pagament 100% segur · SSL · Dades encriptades</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let cart=[];
+let wishlist=new Set();
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+function addToCart(btn,name,sub,price,color){
+  const numPrice=parseFloat(price.replace('€','').replace('/mes','').replace(',','.'));
+  const existing=cart.find(i=>i.name===name);
+  if(existing){ existing.qty++; }
+  else { cart.push({name,sub,price,numPrice,color,qty:1}); }
+  updateCart();
+  btn.textContent='✓ Afegit!';
+  btn.classList.add('added');
+  setTimeout(()=>{btn.textContent='🛒 Afegir a la cistella';btn.classList.remove('added')},2000);
+  showToast(`✓ ${name} afegit a la cistella`);
+  openCart();
+}
+
+function removeFromCart(idx){
+  cart.splice(idx,1);
+  updateCart();
+}
+
+function changeQty(idx,delta){
+  cart[idx].qty+=delta;
+  if(cart[idx].qty<=0) cart.splice(idx,1);
+  updateCart();
+}
+
+function updateCart(){
+  const count=cart.reduce((a,i)=>a+i.qty,0);
+  document.getElementById('cart-count').textContent=count;
+
+  const body=document.getElementById('cart-body');
+  const empty=document.getElementById('cart-empty');
+  const footer=document.getElementById('cart-footer');
+
+  if(cart.length===0){
+    empty.style.display=''; footer.style.display='none';
+    body.innerHTML=''; body.appendChild(empty);
+    return;
+  }
+
+  empty.style.display='none'; footer.style.display='';
+  let html='';
+  cart.forEach((item,idx)=>{
+    html+=`<div class="cart-item">
+      <div class="cart-item-img" style="background:${item.color}20;border:2px solid ${item.color}40">
+        <div style="width:32px;height:56px;border-radius:8px 8px 6px 6px;background:${item.color}"></div>
+      </div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-sub">${item.sub} · 330ml</div>
+        <div class="cart-item-price">${item.price}</div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty(${idx},-1)">−</button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="changeQty(${idx},1)">+</button>
+          <button class="cart-item-del" onclick="removeFromCart(${idx})" title="Eliminar">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  body.innerHTML=html;
+
+  const subtotal=cart.reduce((a,i)=>a+i.numPrice*i.qty,0);
+  const shipping=subtotal>=20?0:2.90;
+  const discount=subtotal*0.15;
+  const total=subtotal+shipping-discount;
+  document.getElementById('cart-subtotal').textContent=subtotal.toFixed(2).replace('.',',')+'€';
+  document.getElementById('cart-shipping').textContent=shipping===0?'Gratuït 🎉':shipping.toFixed(2).replace('.',',')+'€';
+  document.getElementById('cart-discount').textContent='-'+discount.toFixed(2).replace('.',',')+'€';
+  document.getElementById('cart-total').textContent=total.toFixed(2).replace('.',',')+'€';
+}
+
+function openCart(){
+  document.getElementById('cart-overlay').classList.add('open');
+  document.getElementById('cart-drawer').classList.add('open');
+}
+function closeCart(){
+  document.getElementById('cart-overlay').classList.remove('open');
+  document.getElementById('cart-drawer').classList.remove('open');
+}
+function checkout(){
+  showToast('🎉 Redirigint al pagament...');
+  setTimeout(()=>{
+    alert('✅ Gràcies per la teva comanda!\n\nAquest és un projecte educatiu — no s\'ha processat cap pagament real.\n\n#SweetDropMoment 🌈');
+  },800);
+}
+
+function toggleWish(btn){
+  if(btn.classList.contains('liked')){
+    btn.classList.remove('liked');
+    btn.textContent='♡';
+    showToast('Eliminat dels desitjos');
+  } else {
+    btn.classList.add('liked');
+    btn.textContent='♥';
+    showToast('❤️ Afegit als desitjos');
+  }
+}
+
+function scrollToProduct(id){
+  document.getElementById('prod-'+id)?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+</script>
+</body>
+</html>
